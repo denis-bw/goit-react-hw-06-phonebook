@@ -1,54 +1,43 @@
-import  { useState } from "react";
+import {  nanoid } from "@reduxjs/toolkit";
+import { useDispatch,useSelector } from "react-redux";
+import { setContacts } from "redux/contactsDetailsReducer";
 import css from './ContactForm.module.css'
-import PropTypes from 'prop-types';
 
-export function ContactForm({handleSubmitForm}) {
+export function ContactForm() {
     
-  const [nameUser, setNameUser] = useState('')
-  const [numberUser, setNumberUser] = useState('')
+  const dispatch = useDispatch()
+  const contacts = useSelector(state => state.contactsDetails.contacts)
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const { name, number } = e.currentTarget;
     
-    handleSubmitForm(nameUser, numberUser)
+    const equalName = contacts.find(contact => name.value.toUpperCase() === contact.name.toUpperCase()) 
+    if (equalName) return alert(`${equalName.name} is already in contacts`);
 
-    resetState()
-      name.value = "";
-      number.value = "";
+    const equalNumber = contacts.find(contact => number.value === contact.number) 
+    if (equalNumber) return alert(`${equalNumber.number} is already in contacts`);
+
+    dispatch(setContacts({
+      name: name.value,
+      number: number.value,
+      id: nanoid(),
+    }))
+
+    name.value = "";
+    number.value = "";
   };
-  
-  const resetState = () => { 
-    setNameUser('')
-    setNumberUser('')
-  }
-
-
-  const handleChangeInput = (e) => {
-    const {name, value} = e.currentTarget;
-
-      switch (name) {
-        case "name":
-          setNameUser(value)  
-          break;
-        case "number":
-          setNumberUser(value)  
-          break;
-        default: return;
-      }
-  }
-
+ 
         return (
             <form onSubmit={handleSubmit} className={css.form__contacts}>
                 <label>
                   <p className={css.form__text}>Name</p>
                   <input
                       className={css.input__form}
-                      onChange={handleChangeInput}
                       type="text"
                       name="name"
-                      pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-                      title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+                      pattern="^[a-zA-Z]{1,8}"
+                      title="The name can contain only letters, from 1 to 8 Latin letters"
                       required
                       />
                 </label>
@@ -57,11 +46,10 @@ export function ContactForm({handleSubmitForm}) {
                   <p className={css.form__text}>Number</p>
                   <input
                       className={css.input__form}
-                      onChange={handleChangeInput}
                       type="tel"
                       name="number"
-                      pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-                      title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+                      pattern="[0-9]{5,10}"
+                      title="Phone number must be digit and have 5-10 digit"
                       required
                   />
                 </label>
@@ -72,6 +60,3 @@ export function ContactForm({handleSubmitForm}) {
     )
 };
 
-ContactForm.propTypes = {
-  handleSubmitForm: PropTypes.func.isRequired,
-};
